@@ -1,0 +1,66 @@
+module NotatieFuncties
+
+import StdEnv
+
+f1			:: Int
+f1			= 1 + 5
+
+// Optellen van 1 + 5
+// Start		= f1
+// 6
+
+f2			:: Int
+f2			= (+) 1 5
+
+// Optellen van 1 + 5
+// Start		= f2
+// 6
+
+f3			:: Int Int -> Int
+f3 m n
+| m < n		= m
+| otherwise	= n
+
+// Teruggeven van het laagste getal
+// Start		= f3 5 10
+// Start		= f3 10 5
+// 5
+
+f4			:: String Int -> String
+f4 s n
+| n <= 0	= ""
+| otherwise	= s +++ f4 s (n-1)
+
+// String herhalen voor opgegeven aantal keer
+// Start		= f4 "Test" 10
+// "TestTestTestTestTestTestTestTestTestTest"
+
+f5			:: Int Int -> Int
+f5 x 0		= x
+f5 x y		= f5 y (x rem y)
+
+// Start		= f5 10 5
+// 5
+
+f6			:: (Int,Int) -> Int
+f6 x		= fst x + snd x
+
+// Eerste plus tweede parameter bij elkaar optellen
+// Start		= f6 (10,20)
+// 30
+
+f7			:: (a,b) -> (b,a)
+f7 (a,b)	= (b,a)
+
+// Parameters a en b van plek verwisselen.
+// Start		= f7 (10,5)
+// (5,10)
+
+
+f8			:: (a,a) -> (a,a)
+f8 x		= f7 (f7 x)
+
+// Start		= f8 (50,100)
+// (50,100)
+
+Start		= f1
