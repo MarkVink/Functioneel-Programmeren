@@ -28,56 +28,40 @@ memberOfSet	a (Set [b:bs])
 | otherwise				= memberOfSet a (Set bs)
 memberOfSet	a (Set [])	= False
 
+
 instance zero (Set a)
 where zero = (Set [])
 
-//instance zero (a,b)   | zero a & zero b          
-//where zero = (zero,zero)
+instance <   (Set a) | Eq a     
+where (<) a b 			= SetLength a < SetLength b	
 
-//SetEqual		:: (Set a) (Set a)	-> Bool	| Eq a
-//SetEqual a b	= True
-//SetEqual (Set [a:as]) (Set [b:bs])
-//| memberOfSet a (Set [b:bs]) && memberOfSet b (Set [a:as]) = SetEqual (Set as) (Set bs)
-//| otherwise					= False
+instance == (Set a) | Eq a
+where (==) a b = SetLength (a diff b) == 0
+
+SetLength :: (Set a) -> Int
+SetLength (Set []) = 0
+SetLength (Set a) = length a
 
 
-//| memberOfSet a (Set bs)	= memberOfSet a (Set bs)
-//| otherwise 				= False
+(\/) infixl 6 :: (Set a) (Set a) -> Set a | Eq a
+(\/) (Set []) (Set [])			= zero
+(\/) (Set []) b 				= b
+(\/) a (Set []) 				= a
+(\/) (Set a) (Set b)	= toSet [c \\ c <- a ++ b]
 
-SetEqual :: (Set a) (Set a) -> Bool | Eq a
-SetEqual (Set []) (Set []) 			= True
-SetEqual (Set []) b 				= False
-SetEqual a (Set []) 				= False
-SetEqual (Set [a:as]) (Set [b:bs])
-| memberOfSet a (Set [b:bs]) && memberOfSet b (Set [a:as]) = SetEqual (Set as) (Set bs)
-| otherwise 						= False
+(/\) infixl 7 :: (Set a) (Set a) -> Set a | Eq a
+(/\) (Set []) (Set [])			= zero
+(/\) (Set []) b 				= zero
+(/\) a (Set []) 				= zero
+(/\) (Set a) b	= toSet [c \\ c <- a | memberOfSet c b]
 
-Start = SetEqual (Set [2,1]) (Set [1,2])
+(diff) infix :: (Set a) (Set a) -> Set a | Eq a
+(diff) (Set []) (Set [])		= zero
+(diff) a b 			= toSet [c \\ c <- fromSet (a \/ b) | memberOfSet c (a /\ b) == False]
 
-//instance ==   (Set a) | Eq a     
-//where 
-//	(==) x y 			= isDisjoint x y
-	
-/*
-func :: a -> a
-.
-.
-where
-	f1 :: a -> a
-	f1 a = a +1
-where
-	f2 :: a -> a
-	f2 a = f1 a
-*/
 
-//instance +    (a,b)   | + a & + b                
-//where (+) (x0,y0) (x1,y1) = (x0 + x1,y0 + y1)
+product	:: (Set a) (Set b) -> Set (a,b)
+product (Set a) (Set b)			= Set [(x,y) \\ x <- a, y <- b]
 
-//Start = (Set [1,2]) == (Set [1,2])
-
-//Start 		= (Set [1]) == (Set [2,1])
-
-//Start 	= isDisjoint (Set [1,2,3,4]) (Set [4,5,6])
-
-//Start = memberOfSet 5 (toSet [1,2,2,3])
-//Start = isEmptySet (Set [1,2])
+powerSet		:: (Set a)         -> Set (Set a)
+powerSet (Set a)				= Set [Set [x,y] \\ x <- a, y <- a]
