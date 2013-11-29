@@ -64,6 +64,42 @@ Bewijs:
 		
 	Bewijs:
 		map f (tips (Bin (Tip a) (Tip a))) // basis aanname
+	= 	tips (mapbtree f (Bin (Tip a) (Tip a))) // (IH)
+	
+	Dus: basis + inductiestap => stelling bewezen.
+	
+	
+	
+	
+	
+	////////////// HIERONDER KLAD!! ////////////////	
+		map f (tips (Bin (Tip a) (Tip a))) // basis aanname
+	=	map f (foldbtree (++) (mapbtree unit (Bin (Tip a) (Tip a)))) // (7)
+	=	map f (foldbtree (++) (Bin (mapbtree unit (Tip a)) (mapbtree unit (Tip a)))) // (4)
+	=	map f (foldbtree (++) (Bin (Tip (unit a)) (mapbtree unit (Tip a)))) // (3)
+	=	map f (foldbtree (++) (Bin (Tip (unit a)) (Tip (unit a)))) // (3)
+	=	map f ((++) (foldbtree (++) (Tip (unit a))) (foldbtree (++) (Tip (unit a)))) // (6)
+	= 	map f ((++) (unit a) (foldbtree (++) (Tip (unit a)))) // (5)
+	= 	map f ((++) (unit a) (unit a)) // (5)
+	= 	map f ((++) [a] (unit a)) // (8)
+	= 	map f ((++) [a] [a]) // (8)
+	
+	=	(map f [a]) ++ (map f [a]) // hulpstelling (9.4.1)
+	
+	
+	=	tips (mapbtree f (Bin (Tip a) (Tip a))) // (IH) <=
+	=	map f (tips (Bin (Tip a) (Tip a)))
+	
+	
+	// (4)
+	=	tips (Bin (mapbtree f (Tip a)) (mapbtree f (Tip a))) // (3)
+	=	tips (Bin (Tip (f a)) (mapbtree f (Tip a))) // (3)
+	=	tips (Bin (Tip (f a)) (Tip (f a)))
+	//mapbtree f (Tip a)      = Tip (f a)                             (3.)
+	
+
+
+		map f (tips (Bin (Tip a) (Tip a))) // basis aanname
 	=	map f (foldbtree (++) (mapbtree unit (Bin (Tip a) (Tip a)))) // (7)
 	=	map f (foldbtree (++) (Bin (mapbtree unit (Tip a)) (mapbtree unit (Tip a)))) // (4)
 	=	map f (foldbtree (++) (Bin (Tip (f a)) (mapbtree f (Tip a)))) // (3)
