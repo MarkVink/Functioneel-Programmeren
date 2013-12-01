@@ -37,7 +37,7 @@ Bewijs:
 	Basis:
 	Aanname: t = Tip a
 	
-		map f (tips (Tip a)) 								// basis aaname
+		map f (tips (Tip a)) 								// basisaanname
 	=	map f (foldbtree (++) (mapbtree unit (Tip a))) 		// (7)
 	=	map f (foldbtree (++) (Tip (unit a))) 				// (3)
 	=	map f (foldbtree (++) (Tip [a])) 					// (8)
@@ -45,73 +45,39 @@ Bewijs:
 	=	[f a : map f []]									// (2)
 	=	[f a : []]											// (2)
 	=	[f a]
-	
 	=	foldbtree (++) (Tip [f a])) 						// (5) <=
 	=	foldbtree (++) (Tip (unit (f a))) 					// (8) <=
 	=	foldbtree (++) (mapbtree unit (Tip (f a))) 			// (3) <=
 	=	tips (Tip (f a)) 									// (7) <=
 	=	tips (mapbtree f (Tip a)) 							// (3) <=
-	=	tips (mapbtree f t) 								// basis aanname <=
+	=	tips (mapbtree f t) 								// basisaanname <=
+	
 	
 	Inductiestap:
 	Aanname: stelling geldt voor zekere bomen, ofwel:
 	
 		map f (tips t) = tips (mapbtree f t)				// (IH)
 		
-	Te bewijzen: stelling geldt ook voor t = Bin (Tip a) (Tip a), ofwel:
+	Te bewijzen: stelling geldt ook voor t3 = Bin t1 t2, ofwel:
 	
-		map f (tips (Bin (Tip a) (Tip a))) = tips (mapbtree f (Bin (Tip a) (Tip a)))
-		
+		map f (tips (Bin t1 t2)) = tips (mapbtree f (Bin t1 t2))
+				
 	Bewijs:
-		map f (tips (Bin (Tip a) (Tip a))) // basis aanname
-	= 	tips (mapbtree f (Bin (Tip a) (Tip a))) // (IH)
-	
-	Dus: basis + inductiestap => stelling bewezen.
-	
-	
-	
-	
-	
-	////////////// HIERONDER KLAD!! ////////////////	
-		map f (tips (Bin (Tip a) (Tip a))) // basis aanname
-	=	map f (foldbtree (++) (mapbtree unit (Bin (Tip a) (Tip a)))) // (7)
-	=	map f (foldbtree (++) (Bin (mapbtree unit (Tip a)) (mapbtree unit (Tip a)))) // (4)
-	=	map f (foldbtree (++) (Bin (Tip (unit a)) (mapbtree unit (Tip a)))) // (3)
-	=	map f (foldbtree (++) (Bin (Tip (unit a)) (Tip (unit a)))) // (3)
-	=	map f ((++) (foldbtree (++) (Tip (unit a))) (foldbtree (++) (Tip (unit a)))) // (6)
-	= 	map f ((++) (unit a) (foldbtree (++) (Tip (unit a)))) // (5)
-	= 	map f ((++) (unit a) (unit a)) // (5)
-	= 	map f ((++) [a] (unit a)) // (8)
-	= 	map f ((++) [a] [a]) // (8)
-	
-	=	(map f [a]) ++ (map f [a]) // hulpstelling (9.4.1)
-	
-	
-	=	tips (mapbtree f (Bin (Tip a) (Tip a))) // (IH) <=
-	=	map f (tips (Bin (Tip a) (Tip a)))
-	
-	
-	// (4)
-	=	tips (Bin (mapbtree f (Tip a)) (mapbtree f (Tip a))) // (3)
-	=	tips (Bin (Tip (f a)) (mapbtree f (Tip a))) // (3)
-	=	tips (Bin (Tip (f a)) (Tip (f a)))
-	//mapbtree f (Tip a)      = Tip (f a)                             (3.)
-	
 
-
-		map f (tips (Bin (Tip a) (Tip a))) // basis aanname
-	=	map f (foldbtree (++) (mapbtree unit (Bin (Tip a) (Tip a)))) // (7)
-	=	map f (foldbtree (++) (Bin (mapbtree unit (Tip a)) (mapbtree unit (Tip a)))) // (4)
-	=	map f (foldbtree (++) (Bin (Tip (f a)) (mapbtree f (Tip a)))) // (3)
-	=	map f (foldbtree (++) (Bin (Tip (f a)) (Tip (f a)))) // (3)
-	=	map f ((++) (foldbtree f Tip (f a)) (foldbtree f Tip (f a))) // (6)
-	=	map f ((++) (f a) (foldbtree (++) Tip (f a))) // (5)
-	=	map f ((++) (f a) (f a)) // (5)
-	//map f [x:xs]            = [f x : map f xs]                      (2.)
-	=	map f (f (f a) (f a)) // (5)
+		map f (tips (Bin t1 t2)) 																	// basisaanname
+	=	map f (foldbtree (++) (mapbtree unit (Bin t1 t2))) 											// (7.)
+	=	map f (foldbtree (++) (Bin (mapbtree unit t1) (mapbtree unit t2))) 							// (4.)
+	=	map f ((++) (foldbtree (++) (mapbtree unit t1)) (foldbtree (++) (mapbtree unit t2))) 		// (6.)
+	= 	(map f (foldbtree (++) (mapbtree unit t1))) ++ (map f (foldbtree (++) (mapbtree unit t2)))	// (9.4.1)
+	= 	(map f (tips t1)) ++ (map f (foldbtree (++) (mapbtree unit t2))) 							// (7.) <=
+	= 	(map f (tips t1)) ++ (map f (tips t2)) 														// (7.) <=
+	= 	(tips (mapbtree f t1)) ++ (map f (tips t2)) 												// (IH)
+	= 	(tips (mapbtree f t1)) ++ (tips (mapbtree f t2)) 											// (IH)
+	= 	(++) (foldbtree (++) (mapbtree unit t1)) ++ (tips (mapbtree f t2)) 							// (7.)
+	= 	(++) (foldbtree (++) (mapbtree unit t1)) (foldbtree (++) (mapbtree unit t2)) 				// (7.)
+	= 	foldbtree (++) (Bin (mapbtree unit t1) (mapbtree unit t2)) 									// (6.) <=
+	= 	foldbtree (++) (mapbtree unit (Bin t1 t2)) 													// (4.) <=
+	= 	tips (Bin t1 t2) 																			// (7.) <=
+	=	tips (mapbtree f (Bin t1 t2)) 																// (4.) <=
 	
-	
-	
-	
-	
-	
+	Dus: basis + inductiestap => stelling bewezen.	
