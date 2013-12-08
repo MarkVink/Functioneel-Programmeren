@@ -4,6 +4,10 @@ import StdEnv, RandomGetallen
 
 // Definitions
 
+instance toString Player where
+         toString PLAYER_CPU     = "CPU"
+         toString PLAYER_HUMAN	= "Human"
+
 :: Player = PLAYER_CPU | PLAYER_HUMAN
 
 :: State = STATE_INIT | STATE_RUNNING | STATE_END
@@ -20,20 +24,36 @@ Start world
 
 startGame :: *World GameState -> (*World, GameState)
 startGame world gs
-#world = write (drawBoard gs.board)  world
 #(world, gs) = turn world gs
 = startGame world gs
 
 turn :: *World GameState -> (*World, GameState)
 turn world gs
-#(world, gs, row) = askRow world gs
-#(world, gs) = askStone world gs row
-= (world, gs)
+#gs = checkGameOver gs
+| toString gs.turn == "CPU"		= turnCPU world gs
+| otherwise						= turnHuman world gs
 where
+	turnHuman :: *World GameState -> (*World, GameState)
+	turnHuman world gs
+	#(world, gs) = showTurn world gs
+	#(world, gs, row) = askRow world gs
+	#(world, gs) = askStone world gs row
+	#gs = {gs & turn = PLAYER_CPU}
+	= (world, gs)
+	turnCPU :: *World GameState -> (*World, GameState)
+	turnCPU world gs
+	#(world, gs) = showTurn world gs
+	#(world, gs, row) = choseRow world gs
+	#(world, gs) = choseStone world gs row
+	#gs = {gs & turn = PLAYER_HUMAN}
+	= (world, gs)
+	showTurn :: *World GameState -> (*World, GameState)
+	showTurn world gs
+	= (writeln ((drawBoard gs.board) +++ (toString gs.turn) +++ "s turn:") world, gs)
 	askRow :: *World GameState -> (*World, GameState, String)
 	askRow world gs
 	#(gs, rows) = possibleRows gs
-	#(s, world) = readln ("Which row? [" +++ rows +++ "]") world
+	#(s, world) = readln ("Which row? [" +++ (implode "/" rows) +++ "]") world
 	#(gs, max) = maxStones gs s
 	| s == "A" && max > 0 = (world, gs, s)
 	| s == "B" && max > 0 = (world, gs, s)
@@ -41,14 +61,27 @@ where
 	| s == "D" && max > 0 = (world, gs, s)
 	| s == "E" && max > 0 = (world, gs, s)
 	| otherwise			= askRow world gs
-	possibleRows :: GameState -> (GameState, String)
+	choseRow :: *World GameState -> (*World, GameState, String)
+	choseRow world gs
+	#(gs, rows) = possibleRows gs
+	#(rs, world) = getNewRandomSeed world
+	#s = last (shuffle rows rs)
+	#world = write ("CPU choose row: " +++ s) world
+	#(gs, max) = maxStones gs s
+	| s == "A" && max > 0 = (world, gs, s)
+	| s == "B" && max > 0 = (world, gs, s)
+	| s == "C" && max > 0 = (world, gs, s)
+	| s == "D" && max > 0 = (world, gs, s)
+	| s == "E" && max > 0 = (world, gs, s)
+	| otherwise			= choseRow world gs
+	possibleRows :: GameState -> (GameState, [String])
 	possibleRows gs
-	#s = " "
-	#s = if(gs.board.a > 0) (s +++ "A ") s
-	#s = if(gs.board.b > 0) (s +++ "B ") s
-	#s = if(gs.board.c > 0) (s +++ "C ") s
-	#s = if(gs.board.d > 0) (s +++ "D ") s
-	#s = if(gs.board.e > 0) (s +++ "E ") s
+	#s = []
+	#s = if(gs.board.a > 0) (s ++ ["A"]) s
+	#s = if(gs.board.b > 0) (s ++ ["B"]) s
+	#s = if(gs.board.c > 0) (s ++ ["C"]) s
+	#s = if(gs.board.d > 0) (s ++ ["D"]) s
+	#s = if(gs.board.e > 0) (s ++ ["E"]) s
 	= (gs, s)
 	askStone :: *World GameState String -> (*World, GameState)
 	askStone world gs row
@@ -57,6 +90,13 @@ where
 	#stones = (toInt s)
 	| stones > 0 && stones <= max	= (world, (takeStone gs row stones))
 	| otherwise			= askStone world gs row
+	choseStone :: *World GameState String -> (*World, GameState)
+	choseStone world gs row
+	#(gs, max) = maxStones gs row
+	#(rs, world) = getNewRandomSeed world
+	#stones = last (shuffle [1 .. max] rs)
+	#world = writeln (" with " +++ (toString stones) +++ " stone(s)") world
+	= (world, (takeStone gs row stones))
 	maxStones :: GameState String -> (GameState, Int)
 	maxStones gs row
 	| row == "A"		= (gs, gs.board.a)
@@ -72,10 +112,6 @@ where
 	| row == "C"		= {gs & board.c = (gs.board.c - stones)}
 	| row == "D"		= {gs & board.d = (gs.board.d - stones)}
 	| row == "E"		= {gs & board.e = (gs.board.e - stones)}
-
-
-	
-//changeState gs = {gs & currentWord = "Bier"}	
 	
 initGameState :: *World Int -> (*World, GameState)
 initGameState world max 
@@ -93,6 +129,18 @@ where
 	| input == "y"		= (world, PLAYER_HUMAN)
 	| input == "n"		= (world, PLAYER_CPU)
 	| otherwise			= determineStartPlayer world
+
+checkGameOver :: GameState -> GameState
+checkGameOver gs
+| gameOver gs.board 	= abort ("Game over; " +++ (toString gs.turn) +++ " wins!")
+| otherwise 			= gs 
+where
+	gameOver :: Board -> Bool
+	gameOver board
+	| sumStones board == 0 	= True
+	| otherwise 			= False 
+	sumStones :: Board -> Int
+	sumStones board	= board.a + board.b + board.c + board.d + board.e
 	
 initBoard :: RandomSeed Int -> Board
 initBoard rs max 
@@ -107,10 +155,6 @@ initBoard rs max
 where
 	randomMax :: Int RandomSeed -> [Int]
 	randomMax max rs	= (shuffle [3..max] rs)
-	last :: [a] -> a
-	last []				= abort "List is empty."
-	last [a] 			= a
-	last [a : xs] 		= last xs
 	
 drawBoard :: Board -> String
 drawBoard board
@@ -126,27 +170,31 @@ where
 	| i == 0 	= ""
 	| otherwise	= "0" +++ (points (i-1))
 
+// Util functions
+implode :: String [String] -> String
+implode s [] 		= ""
+implode s [x] 		= x
+implode s [x:xs] 	= x +++ s +++ (implode s xs)
 
 // Console functions	
-write :: String *env -> *env | FileSystem env
-write message env
-#(console, env) = stdio env
+write :: String *world -> *world | FileSystem world
+write message world
+#(console, world) = stdio world
 #console = fwrites message console
-#(ok, env) = fclose console env
-= env
+#(ok, world) = fclose console world
+= world
 
-writeln :: String *env -> *env | FileSystem env
-writeln message env = write (message +++ "\n") env
+writeln :: String *world -> *world | FileSystem world
+writeln message world = write (message +++ "\n") world
 
-readln :: String *env -> (String, *env) | FileSystem env
-readln message env
-#(console, env) = stdio env
-#(input, console) = freadline (console <<< message)
-#input = rmnln input
-#(ok, env) = fclose console env
-= (input, env)
+readln :: String *world -> (String, *world) | FileSystem world
+readln message world
+#(console, world) = stdio world
+#(s, console) = freadline (console <<< message)
+#s = rmnln s
+#(ok, world) = fclose console world
+= (s, world)
 
-// Deze is dubbel van FileIO, kan beter in een .dcl
 rmnln :: !String -> String
 rmnln "\n" = ""
 rmnln str
